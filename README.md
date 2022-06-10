@@ -4,3 +4,6 @@
 
 
 然後執行 server.py
+
+
+然後cd ignite_member -> python3 app.py
