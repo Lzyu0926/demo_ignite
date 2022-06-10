@@ -1,7 +1,9 @@
 # demo_ignite
 
 先開 ignite 
+
 (mac: ./ignite.sh ../examples/config/example-ignite.xml )
+
 (windows: 應該是 ./ignite.bat ../examples/config/example-ignite.xml)(不是的話問一下仲倫) 
 
 
