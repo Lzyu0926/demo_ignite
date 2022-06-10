@@ -136,6 +136,10 @@ def connectsearch():
     phone = session["phone"]
     return render_template("connectpage.html",msg=phone)  
 
+## 主要寫這裡 ##
+## 功能：比對是否與確診者有接觸 ##
+
+
 @app.route("/connectsearchpage",methods=["POST"])
 def connectsearchpage():
     ##將帳號密碼對應帳號的 Name 日期 地點 匯入
@@ -168,6 +172,8 @@ def connectsearchpage():
         print("無接觸")
     return render_template("connectpage.html",msg=phone) 
 
+## 主要寫這裡 ##
+## 功能：回報卻診，輸入驗證碼後，填入去公共場所的時間地點 ##
 
 @app.route("/diagnosed",methods=["POST"])
 def diagnosed():
