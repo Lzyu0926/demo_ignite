@@ -4,6 +4,14 @@
     <title>接觸史</title>
 </head>
 <body>
-    <h1>{{msg}}</h1>
+    <form action="/connectsearch", method="POST">
+        <h3>會員: {{msg}}</h3>
+        <h3>上次接觸時間: {{msg2}}</h3>
+        <h3>上次接觸地點: {{msg3}}</h3>
+    </form>
+    <form action="/signout">
+        <button>登出</button>
+    </form>
+    
 </body>
 </html>

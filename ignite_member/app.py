@@ -4,6 +4,7 @@ from matplotlib.collections import Collection
 import certifi
 from pyignite import Client
 from flask import *
+import random
 
 client = Client()
 client.connect('127.0.0.1', 10800)
@@ -61,7 +62,7 @@ def signin():
             return render_template("homepage.html",msg="密碼輸入錯誤")  
         else:
             session["phone"] = phone
-            return render_template("memberpage.html")  
+            return redirect("\member") 
     #####################################################
 
     # return redirect("/?msg=success")
@@ -116,7 +117,7 @@ def signuppage():
 @app.route("/signout")
 def signout():
     #登出
-    del session["nickname"]
+    del session["phone"]
     return redirect("/")
 
 
@@ -137,45 +138,68 @@ def memberpage():
 @app.route("/connectsearch",methods=["POST"])
 def connectsearch():
     ##將帳號密碼對應帳號的 phone 日期 地點 匯入
-    phone = session["phone"]
-    FOOTPRINT_SELECT_QUERY = "SELECT Name,Date,Place FROM Footprint WHERE ID = '" + phone +"'"
-    footprints = client.sql(FOOTPRINT_SELECT_QUERY)
-    ##將確診者的資料匯入
-    CONFIRMED_SELECT_QUERY = "SELECT Name,Date,Place FROM Confirmed"
-    confirmeds = client.sql(CONFIRMED_SELECT_QUERY)
-
-    count = 0
-    c = 0 
-    ##遍歷所有資料
-    for row in footprints :
-        place = row[2]
-        date = row[1]
-        ##將確診者與足跡中地點時間相同者的資料匯入
-        #(變數) = SELECT 目標欄位 WHERE 條件相符
-        CONFIRMED_SELECT_QUERY = "SELECT Name,Date,Place FROM Confirmed WHERE Place = '"+place+"' AND Date = '"+date +"'"
-        #一定要加client.sql才會執行 要不然只是字串
+    if "phone" in session:
+        phone = session["phone"]
+        FOOTPRINT_SELECT_QUERY = "SELECT Name,Date,Place FROM Footprint WHERE ID = '" + phone +"'"
+        footprints = client.sql(FOOTPRINT_SELECT_QUERY)
+        ##將確診者的資料匯入
+        CONFIRMED_SELECT_QUERY = "SELECT Name,Date,Place FROM Confirmed"
         confirmeds = client.sql(CONFIRMED_SELECT_QUERY)
+
         count = 0
-        for r in confirmeds:
-            count = count+1
-        if count != 0 :
-            print("有接觸")
-            msg2=r[0]
-            msg3=r[1]
-            msg4=r[2]
-            c = c+1
-            return render_template("connectpage.html",msg=phone,msg2=msg2,msg3=msg3,msg4=msg4)  
-    if c == 0 :
-        msg2 = "無接觸"
-    return render_template("connectpage.html",msg=phone,msg2=msg2)  
+        c = 0 
+        ##遍歷所有資料
+        for row in footprints :
+            place = row[2]
+            date = row[1]
+            ##將確診者與足跡中地點時間相同者的資料匯入
+            #(變數) = SELECT 目標欄位 WHERE 條件相符
+            CONFIRMED_SELECT_QUERY = "SELECT Name,Date,Place FROM Confirmed WHERE Place = '"+place+"' AND Date = '"+date +"'"
+            #一定要加client.sql才會執行 要不然只是字串
+            confirmeds = client.sql(CONFIRMED_SELECT_QUERY)
+            count = 0
+            for r in confirmeds:
+                count = count+1
+            if count != 0 :
+                print("有接觸")
+                msg2=r[1]
+                msg3=r[2]
+                c = c+1
+                return render_template("connectpage.html",msg=phone,msg2=msg2,msg3=msg3)  
+        if c == 0 :
+            msg2 = "無"
+            msg3 = "無"
+        return render_template("connectpage.html",msg=phone,msg2=msg2,msg3=msg3) 
+    else:
+        return redirect("/") 
     
 
 
 ## 主要寫這 ##
 ## 確診回報系統、輸入驗證碼、填入資料 ##
+@app.route("/diagnosedpage",methods=["POST"])
+def diagnosedpage():
+    return render_template("diagnosedpage.html")
+
 @app.route("/diagnosed",methods=["POST"])
 def diagnosed():
-    return render_template("diagnosedpage.html")
+        name = request.form["name"]
+        Date = request.form["date"]
+        Place = request.form["place"]
+        phone = session["phone"]
+        
+        ##這是insert to sql 的方法 每一個問號對應一個標籤 
+        FOOTPRINT_INSERT_QUERY = '''INSERT INTO Footprint(
+            Name, ID, Password, Date , Place,key    
+        ) VALUES (?, ?, ?, ?,?,?)'''
+        ##將資料存進一個DATA 再將整個DATA insert
+        NEW_DATA = [
+            [name,phone,"",Date,Place,random.randint(0, 100000000)]  
+        ]
+        for row in NEW_DATA:
+            client.sql(FOOTPRINT_INSERT_QUERY, query_args=row)
+        return redirect("\member")
+        
 
 
 #/error?msg=錯誤訊息
