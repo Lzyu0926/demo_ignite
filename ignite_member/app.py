@@ -131,18 +131,12 @@ def memberpage():
     else:
         return redirect("/")
 
+## 主要寫這 ##
+## 搜尋接觸史 ##
+
 @app.route("/connectsearch",methods=["POST"])
 def connectsearch():
-    phone = session["phone"]
-    return render_template("connectpage.html",msg=phone)  
-
-## 主要寫這裡 ##
-## 功能：比對是否與確診者有接觸 ##
-
-
-@app.route("/connectsearchpage",methods=["POST"])
-def connectsearchpage():
-    ##將帳號密碼對應帳號的 Name 日期 地點 匯入
+    ##將帳號密碼對應帳號的 phone 日期 地點 匯入
     phone = session["phone"]
     FOOTPRINT_SELECT_QUERY = "SELECT Name,Date,Place FROM Footprint WHERE ID = '" + phone +"'"
     footprints = client.sql(FOOTPRINT_SELECT_QUERY)
@@ -166,15 +160,19 @@ def connectsearchpage():
             count = count+1
         if count != 0 :
             print("有接觸")
-            print(*r)
+            msg2=r[0]
+            msg3=r[1]
+            msg4=r[2]
             c = c+1
+            return render_template("connectpage.html",msg=phone,msg2=msg2,msg3=msg3,msg4=msg4)  
     if c == 0 :
-        print("無接觸")
-    return render_template("connectpage.html",msg=phone) 
+        msg2 = "無接觸"
+    return render_template("connectpage.html",msg=phone,msg2=msg2)  
+    
 
-## 主要寫這裡 ##
-## 功能：回報卻診，輸入驗證碼後，填入去公共場所的時間地點 ##
 
+## 主要寫這 ##
+## 確診回報系統、輸入驗證碼、填入資料 ##
 @app.route("/diagnosed",methods=["POST"])
 def diagnosed():
     return render_template("diagnosedpage.html")
